@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <litepal>
-    <!--
-        Define the database name of your application.
-    -->
+
     <dbname value="mini_weather" />
-    <!--
-        Define the version of your database.
-    -->
+
     <version value="1" />
     <!--
         <list>
@@ -19,6 +15,7 @@
         <mapping class="com.simple.miniweather.database.City" />
         <mapping class="com.simple.miniweather.database.County" />
     </list>
+
     <!--
         Define where the .db file should be. "internal" means the .db file
         will be stored in the database folder of internal storage which no
