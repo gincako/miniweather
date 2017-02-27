@@ -1,10 +1,10 @@
 package com.simple.miniweather.activity;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.NestedScrollView;
@@ -13,12 +13,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +24,7 @@ import com.bumptech.glide.Glide;
 import com.simple.miniweather.R;
 import com.simple.miniweather.gson.DailyWeather;
 import com.simple.miniweather.gson.Weather;
+import com.simple.miniweather.service.AutoUpdateService;
 import com.simple.miniweather.utils.Constants;
 import com.simple.miniweather.utils.HttpUtil;
 import com.simple.miniweather.utils.Utility;
@@ -55,6 +54,8 @@ public class WeatherActivity extends AppCompatActivity {
     private ImageView homeImv;
     public DrawerLayout drawerLayout;
 
+    private String weatherId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,14 +84,14 @@ public class WeatherActivity extends AppCompatActivity {
         carwashTV = (TextView) findViewById(R.id.carwash_tv);
         sportsTV = (TextView) findViewById(R.id.sports_tv);
         airTv = (TextView) findViewById(R.id.air_tv);
-        weatherSFL = (SwipeRefreshLayout) findViewById(R.id.weather_sfl);
         homeImv = (ImageView) findViewById(R.id.home_imv);
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        weatherSFL = (SwipeRefreshLayout) findViewById(R.id.weather_sfl);
         weatherSFL.setColorSchemeResources(R.color.refreshColor);
     }
 
+
     private void inData() {
-        final String weatherId;
         //读取缓存
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = sharedPreferences.getString("weather", null);
@@ -173,21 +174,28 @@ public class WeatherActivity extends AppCompatActivity {
             dailyDate.setText(dailyWeather.getDate().substring(dailyWeather.getDate().indexOf("-") + 1));
             DailyWeather.CondBean cond = dailyWeather.getCond();
             int infoImageId = Constants.getInfoImageId(cond.getTxt_d());
-            if (infoImageId > 0) {
+            if (infoImageId != 0) {
                 dailyInfoImv.setImageResource(infoImageId);
-            }
-            if (!cond.getTxt_d().equals(cond.getTxt_n())) {
-                dailyInfo.setText(cond.getTxt_d() + "转" + cond.getTxt_n());
             } else {
-                dailyInfo.setText(cond.getTxt_d());
+                dailyInfoImv.setImageResource(R.mipmap.skyicon_default);
+            }
+            if (cond.getTxt_d() != null) {
+                if (!cond.getTxt_d().equals(cond.getTxt_n())) {
+                    dailyInfo.setText(cond.getTxt_d() + "转" + cond.getTxt_n());
+                } else {
+                    dailyInfo.setText(cond.getTxt_d());
+                }
+            } else {
+                    dailyInfo.setText(cond.getTxt_n());
             }
             dailyTemp.setText(dailyWeather.getTmp().getMax() + "℃/"
                     + dailyWeather.getTmp().getMin() + "℃");
             dailyLayoutLL.addView(view);
         }
-
-        aqiIndexTV.setText(weather.aqi.getCity().getAqi());
-        pmIndexTV.setText(weather.aqi.getCity().getPm25());
+        if (weather.aqi != null) {
+            aqiIndexTV.setText(weather.aqi.getCity().getAqi());
+            pmIndexTV.setText(weather.aqi.getCity().getPm25());
+        }
         airTv.setText("空气指数：" + weather.suggestion.getAir().getBrf() + "，"
                 + weather.suggestion.getAir().getTxt());
         comfortTV.setText("舒适度：" + weather.suggestion.getComf().getBrf() + "，"
@@ -197,10 +205,13 @@ public class WeatherActivity extends AppCompatActivity {
         sportsTV.setText("运动建议：" + weather.suggestion.getSport().getBrf() + "，"
                 + weather.suggestion.getSport().getTxt());
         weatherNSV.setVisibility(View.VISIBLE);
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
     }
 
 
     public void requestWeather(String weatherId) {
+        this.weatherId = weatherId;
         String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=" + Constants.KEY;
         HttpUtil.sendOkhttpRequest(weatherUrl, new Callback() {
             @Override
@@ -216,9 +227,9 @@ public class WeatherActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                final String responseString = response.body().string();
-                Log.e("responseString", "onResponse: ===================" + responseString);
-                final Weather weather = Utility.handleWeatherResponse(responseString);
+                final String responseText = response.body().string();
+                Log.e("responseString", "onResponse: ===================" + responseText);
+                final Weather weather = Utility.handleWeatherResponse(responseText);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -226,7 +237,7 @@ public class WeatherActivity extends AppCompatActivity {
                             SharedPreferences preferences = PreferenceManager
                                     .getDefaultSharedPreferences(WeatherActivity.this);
                             SharedPreferences.Editor editor = preferences.edit();
-                            editor.putString("weather", responseString);
+                            editor.putString("weather", responseText);
                             editor.apply();
                             setData(weather);
                         } else {

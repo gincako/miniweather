@@ -18,14 +18,17 @@ public class Constants {
         if (infoImageId.size() == 0) {
             infoImageId.put("晴", R.mipmap.skyicon_sunshine_normal);
             infoImageId.put("多云", R.mipmap.skyicon_partly_cloud_normal);
+            infoImageId.put("晴间多云", R.mipmap.skyicon_partly_cloud_normal);
             infoImageId.put("阴", R.mipmap.skyicon_cloud_normal);
+            infoImageId.put("薄雾", R.mipmap.skyicon_cloud_normal);
             infoImageId.put("阵雨", R.mipmap.skyicon_rain_light);
+            infoImageId.put("毛毛雨/细雨", R.mipmap.skyicon_rain_light);
             infoImageId.put("小雨", R.mipmap.skyicon_rain_light);
             infoImageId.put("中雨", R.mipmap.skyicon_rain_normal);
             infoImageId.put("大雨", R.mipmap.skyicon_rain_storm);
         }
         Integer imageId = infoImageId.get(infoTxt);
-        if (imageId.intValue() > 0) {
+        if (imageId != null) {
             return imageId;
         } else {
             return 0;
