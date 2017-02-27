@@ -3,9 +3,11 @@ package com.simple.miniweather.utils;
 
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
 import com.simple.miniweather.database.City;
 import com.simple.miniweather.database.County;
 import com.simple.miniweather.database.Province;
+import com.simple.miniweather.gson.Weather;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -77,5 +79,21 @@ public class Utility {
             }
         }
         return false;
+    }
+
+    //解析和处理服务器返回的天气数据
+    public static Weather handleWeatherResponse(String response) {
+        if (!TextUtils.isEmpty(response)) {
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                JSONArray jsonArray = jsonObject.optJSONArray("HeWeather");
+                String weatherStr = jsonArray.optJSONObject(0).toString();
+                Weather weather = new Gson().fromJson(weatherStr, Weather.class);
+                return weather;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 }

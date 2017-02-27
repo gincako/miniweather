@@ -1,6 +1,7 @@
 package com.simple.miniweather.fragment;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.simple.miniweather.R;
+import com.simple.miniweather.activity.WeatherActivity;
 import com.simple.miniweather.database.City;
 import com.simple.miniweather.database.County;
 import com.simple.miniweather.database.Province;
@@ -94,6 +96,12 @@ public class SelectAreaFragment extends Fragment {
                 } else if (currentType == LEVEL_CITY) {
                     selectCity = cityList.get(position);
                     queryCounties();
+                } else if (currentType==LEVEL_COUNTY) {
+                    County county = countyList.get(position);
+                    Intent intent = new Intent(getContext(), WeatherActivity.class);
+                    intent.putExtra("weatherId", county.getWeatherId());
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
