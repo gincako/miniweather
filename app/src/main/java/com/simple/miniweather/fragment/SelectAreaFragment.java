@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.simple.miniweather.R;
+import com.simple.miniweather.activity.MainActivity;
 import com.simple.miniweather.activity.WeatherActivity;
 import com.simple.miniweather.database.City;
 import com.simple.miniweather.database.County;
@@ -64,7 +65,7 @@ public class SelectAreaFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.select_area, container, false);
+        View view = inflater.inflate(R.layout.fragment_select_area, container, false);
         imvSelectBack = (ImageView) view.findViewById(R.id.imv_selectBack);
         tvAreaName = (TextView) view.findViewById(R.id.tv_areaName);
         lvArea = (ListView) view.findViewById(R.id.lv_area);
@@ -96,12 +97,20 @@ public class SelectAreaFragment extends Fragment {
                 } else if (currentType == LEVEL_CITY) {
                     selectCity = cityList.get(position);
                     queryCounties();
-                } else if (currentType==LEVEL_COUNTY) {
+                } else if (currentType == LEVEL_COUNTY) {
                     County county = countyList.get(position);
-                    Intent intent = new Intent(getContext(), WeatherActivity.class);
-                    intent.putExtra("weatherId", county.getWeatherId());
-                    startActivity(intent);
-                    getActivity().finish();
+                    if (getActivity() instanceof MainActivity) {
+                        MainActivity activity = (MainActivity) getActivity();
+                        Intent intent = new Intent(activity, WeatherActivity.class);
+                        intent.putExtra("weatherId", county.getWeatherId());
+                        startActivity(intent);
+                        activity.finish();
+                    } else if (getActivity() instanceof WeatherActivity) {
+                        WeatherActivity activity = (WeatherActivity) getActivity();
+                        activity.drawerLayout.closeDrawers();
+                        activity.weatherSFL.setRefreshing(true);
+                        activity.requestWeather(county.getWeatherId());
+                    }
                 }
             }
         });

@@ -12,28 +12,48 @@
         android:layout_height="match_parent"
         android:scaleType="centerCrop" />
 
-    <android.support.v4.widget.NestedScrollView
-        android:id="@+id/nsv_weather"
+    <android.support.v4.widget.DrawerLayout
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:layout_height="match_parent">
 
-        <LinearLayout
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/weather_sfl"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fitsSystemWindows="true"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
-            <include layout="@layout/title_layout" />
+            <android.support.v4.widget.NestedScrollView
+                android:id="@+id/nsv_weather"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-            <include layout="@layout/now_layout" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fitsSystemWindows="true"
+                    android:orientation="vertical">
 
-            <include layout="@layout/daily_weather" />
+                    <include layout="@layout/title_layout" />
 
-            <include layout="@layout/aqi_layout" />
+                    <include layout="@layout/now_layout" />
 
-            <include layout="@layout/suggestion_layout" />
-        </LinearLayout>
-    </android.support.v4.widget.NestedScrollView>
+                    <include layout="@layout/daily_weather" />
+
+                    <include layout="@layout/aqi_layout" />
+
+                    <include layout="@layout/suggestion_layout" />
+                </LinearLayout>
+            </android.support.v4.widget.NestedScrollView>
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+        <fragment
+            android:id="@+id/select_area_frag"
+            android:name="com.simple.miniweather.fragment.SelectAreaFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:fitsSystemWindows="true" />
+
+    </android.support.v4.widget.DrawerLayout>
 
 </FrameLayout>

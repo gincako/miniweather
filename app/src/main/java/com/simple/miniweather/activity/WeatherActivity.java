@@ -4,11 +4,16 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.NestedScrollView;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -46,6 +51,9 @@ public class WeatherActivity extends AppCompatActivity {
     private NestedScrollView weatherNSV;
     private TextView airTv;
     private ImageView imvBingPic;
+    public SwipeRefreshLayout weatherSFL;
+    private ImageView homeImv;
+    public DrawerLayout drawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +69,28 @@ public class WeatherActivity extends AppCompatActivity {
         inData();
     }
 
+    private void initView() {
+        imvBingPic = (ImageView) findViewById(R.id.imv_bing_pic);
+        weatherNSV = (NestedScrollView) findViewById(R.id.nsv_weather);
+        countyNameTV = (TextView) findViewById(R.id.tv_countyName);
+        updateTimeTV = (TextView) findViewById(R.id.tv_updateTime);
+        nowdegreeTV = (TextView) findViewById(R.id.tv_now_degree);
+        nowInfoTV = (TextView) findViewById(R.id.tv_now_info);
+        dailyLayoutLL = (LinearLayout) findViewById(R.id.daily_layout);
+        aqiIndexTV = (TextView) findViewById(R.id.aqi_index);
+        pmIndexTV = (TextView) findViewById(R.id.pm_index);
+        comfortTV = (TextView) findViewById(R.id.comfort_tv);
+        carwashTV = (TextView) findViewById(R.id.carwash_tv);
+        sportsTV = (TextView) findViewById(R.id.sports_tv);
+        airTv = (TextView) findViewById(R.id.air_tv);
+        weatherSFL = (SwipeRefreshLayout) findViewById(R.id.weather_sfl);
+        homeImv = (ImageView) findViewById(R.id.home_imv);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        weatherSFL.setColorSchemeResources(R.color.refreshColor);
+    }
+
     private void inData() {
+        final String weatherId;
         //读取缓存
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = sharedPreferences.getString("weather", null);
@@ -69,14 +98,15 @@ public class WeatherActivity extends AppCompatActivity {
             //有缓存时直接解析天气数据
             weatherNSV.setVisibility(View.GONE);
             Weather weather = Utility.handleWeatherResponse(weatherString);
+            weatherId = weather.basic.getId();
             setData(weather);
         } else {
             //没有缓存时请求天气数据
             weatherNSV.setVisibility(View.GONE);
-            String weatherId = getIntent().getStringExtra("weatherId");
-            String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=" + Constants.KEY;
-            requestWeather(weatherUrl);
+            weatherId = getIntent().getStringExtra("weatherId");
+            requestWeather(weatherId);
         }
+
         //加载Bing背景图
         String bingPicUrl = sharedPreferences.getString("bing_pic", null);
         if (bingPicUrl != null) {
@@ -84,6 +114,20 @@ public class WeatherActivity extends AppCompatActivity {
         } else {
             loadBingPic();
         }
+
+        weatherSFL.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                requestWeather(weatherId);
+            }
+        });
+
+        homeImv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
     }
 
     private void loadBingPic() {
@@ -113,22 +157,6 @@ public class WeatherActivity extends AppCompatActivity {
         });
     }
 
-    private void initView() {
-        imvBingPic = (ImageView) findViewById(R.id.imv_bing_pic);
-        weatherNSV = (NestedScrollView) findViewById(R.id.nsv_weather);
-        countyNameTV = (TextView) findViewById(R.id.tv_countyName);
-        updateTimeTV = (TextView) findViewById(R.id.tv_updateTime);
-        nowdegreeTV = (TextView) findViewById(R.id.tv_now_degree);
-        nowInfoTV = (TextView) findViewById(R.id.tv_now_info);
-        dailyLayoutLL = (LinearLayout) findViewById(R.id.daily_layout);
-        aqiIndexTV = (TextView) findViewById(R.id.aqi_index);
-        pmIndexTV = (TextView) findViewById(R.id.pm_index);
-        comfortTV = (TextView) findViewById(R.id.comfort_tv);
-        carwashTV = (TextView) findViewById(R.id.carwash_tv);
-        sportsTV = (TextView) findViewById(R.id.sports_tv);
-        airTv = (TextView) findViewById(R.id.air_tv);
-    }
-
     private void setData(Weather weather) {
         countyNameTV.setText(weather.basic.getCity());
         updateTimeTV.setText(weather.basic.getUpdate().getLoc().split(" ")[1]);
@@ -144,11 +172,15 @@ public class WeatherActivity extends AppCompatActivity {
 
             dailyDate.setText(dailyWeather.getDate().substring(dailyWeather.getDate().indexOf("-") + 1));
             DailyWeather.CondBean cond = dailyWeather.getCond();
-            dailyInfoImv.setImageResource(Constants.getInfoImageId(cond.getTxt_d()));
-            if (!cond.getTxt_d().equals(cond.getTxt_n()))
+            int infoImageId = Constants.getInfoImageId(cond.getTxt_d());
+            if (infoImageId > 0) {
+                dailyInfoImv.setImageResource(infoImageId);
+            }
+            if (!cond.getTxt_d().equals(cond.getTxt_n())) {
                 dailyInfo.setText(cond.getTxt_d() + "转" + cond.getTxt_n());
-            else
+            } else {
                 dailyInfo.setText(cond.getTxt_d());
+            }
             dailyTemp.setText(dailyWeather.getTmp().getMax() + "℃/"
                     + dailyWeather.getTmp().getMin() + "℃");
             dailyLayoutLL.addView(view);
@@ -168,7 +200,8 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
 
-    private void requestWeather(String weatherUrl) {
+    public void requestWeather(String weatherId) {
+        String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=" + Constants.KEY;
         HttpUtil.sendOkhttpRequest(weatherUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -176,6 +209,7 @@ public class WeatherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(WeatherActivity.this, "获取天气信息失败！", Toast.LENGTH_SHORT).show();
+                        weatherSFL.setRefreshing(false);
                     }
                 });
             }
@@ -183,6 +217,7 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 final String responseString = response.body().string();
+                Log.e("responseString", "onResponse: ===================" + responseString);
                 final Weather weather = Utility.handleWeatherResponse(responseString);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -197,6 +232,7 @@ public class WeatherActivity extends AppCompatActivity {
                         } else {
                             Toast.makeText(WeatherActivity.this, "获取天气信息失败！", Toast.LENGTH_SHORT).show();
                         }
+                        weatherSFL.setRefreshing(false);
                     }
                 });
             }

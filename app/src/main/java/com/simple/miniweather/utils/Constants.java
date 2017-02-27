@@ -19,11 +19,16 @@ public class Constants {
             infoImageId.put("晴", R.mipmap.skyicon_sunshine_normal);
             infoImageId.put("多云", R.mipmap.skyicon_partly_cloud_normal);
             infoImageId.put("阴", R.mipmap.skyicon_cloud_normal);
+            infoImageId.put("阵雨", R.mipmap.skyicon_rain_light);
             infoImageId.put("小雨", R.mipmap.skyicon_rain_light);
             infoImageId.put("中雨", R.mipmap.skyicon_rain_normal);
             infoImageId.put("大雨", R.mipmap.skyicon_rain_storm);
         }
         Integer imageId = infoImageId.get(infoTxt);
-        return imageId;
+        if (imageId.intValue() > 0) {
+            return imageId;
+        } else {
+            return 0;
+        }
     }
 }

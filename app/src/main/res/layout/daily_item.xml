@@ -10,7 +10,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
-        android:text="2017-12-12" />
+        android:text="2017-12-12"
+        android:textColor="@color/textColor" />
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -28,7 +29,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/daily_infoImv"
-            android:text="多云" />
+            android:layout_marginLeft="5dp"
+            android:text="多云"
+            android:textColor="@color/textColor" />
     </RelativeLayout>
 
     <TextView
@@ -38,7 +41,8 @@
         android:layout_alignParentRight="true"
         android:layout_marginRight="10dp"
         android:gravity="center_horizontal"
-        android:text="30℃/10℃" />
+        android:text="30℃/10℃"
+        android:textColor="@color/textColor" />
 
     <!--<TextView-->
     <!--android:id="@+id/daily_minTemp"-->
