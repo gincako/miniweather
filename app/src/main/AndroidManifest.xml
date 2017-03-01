@@ -19,6 +19,11 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.WeatherActivity"></activity>
+
+        <service
+            android:name=".service.AutoUpdateService"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 
 </manifest>
